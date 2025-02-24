@@ -1,5 +1,5 @@
 "use client";
-
+import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from "next-themes";
 import { ReactNode, useEffect, useState } from "react";
 import { Box } from "@mui/material";
@@ -22,15 +22,17 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body className="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+        <SessionProvider>
         <ThemeProvider attribute="class">
           <Box display="flex">
             {isSidebarOpen && <Sidebar />}
             <Box flexGrow={1}>
               <Header isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
-              <Box p={3}>{mounted ? children : null}</Box>
+              <Box>{mounted ? children : null}</Box>
             </Box>
           </Box>
         </ThemeProvider>
+        </SessionProvider>
       </body>
     </html>
   );

@@ -13,9 +13,14 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  TextField,
   Typography,
   Paper,
+  useMediaQuery,
+  TextField,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
 } from "@mui/material";
 import { Delete } from "@mui/icons-material";
 import { FaUsers, FaShoppingCart, FaBox, FaStar } from "react-icons/fa";
@@ -32,18 +37,13 @@ interface Product {
   image: string;
 }
 
+const categories = ["Music", "Footwear", "fashion"];
+
 export default function Dashboard() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [newProduct, setNewProduct] = useState({
-    name: "",
-    brand: "",
-    category: "",
-    subCategory: "",
-    price: "",
-    discountPrice: "",
-    rating: "",
-    image: "",
-  });
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const isMobile = useMediaQuery("(max-width: 768px)");
 
   useEffect(() => {
     fetch("/api/products")
@@ -51,138 +51,113 @@ export default function Dashboard() {
       .then((data) => setProducts(data));
   }, []);
 
-  // const handleAddProduct = async () => {
-  //   const res = await fetch("/api/products", {
-  //     method: "POST",
-  //     headers: { "Content-Type": "application/json" },
-  //     body: JSON.stringify(newProduct),
-  //   });
-  //   const addedProduct = await res.json();
-  //   setProducts([...products, addedProduct]);
-  //   setNewProduct({
-  //     name: "",
-  //     brand: "",
-  //     category: "",
-  //     subCategory: "",
-  //     price: "",
-  //     discountPrice: "",
-  //     rating: "",
-  //     image: "",
-  //   });
-  // };
-
   const handleDeleteProduct = async (id?: string) => {
     if (!id) return;
-  
+
     try {
       const res = await fetch("/api/products", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id }),
       });
-  
+
       if (!res.ok) {
         const errorData = await res.json();
         console.error("Error deleting product:", errorData.error);
         return;
       }
-  
-      // Remove the product from state only if the deletion was successful
+
       setProducts((prevProducts) => prevProducts.filter((product) => product._id !== id));
     } catch (error) {
       console.error("Failed to delete product:", error);
     }
   };
-  
+
+  const filteredProducts = products.filter(
+    (product) =>
+      product.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+      (selectedCategory ? product.category === selectedCategory : true)
+  );
 
   return (
-    <Box p={4}>
-      <Typography variant="h4" fontWeight="bold">
+    <Box p={isMobile ? 2 : 4} sx={{ minHeight: "100vh", background: "linear-gradient(135deg, #1f1c2c, #928DAB)" }}>
+      <Typography variant={isMobile ? "h5" : "h4"} fontWeight="bold" color="white">
         Admin Dashboard
       </Typography>
 
-      {/* Stats Cards */}
-      <Box display="flex" gap={2} mt={4}>
-        {[
-          {
-            label: "Total Users",
-            count: 4442,
-            icon: <FaUsers />,
-            color: "green",
-          },
-          {
-            label: "Total Orders",
-            count: 236,
-            icon: <FaShoppingCart />,
-            color: "purple",
-          },
-          {
-            label: "Total Products",
-            count: products.length,
-            icon: <FaBox />,
-            color: "blue",
-          },
-          {
-            label: "Total Reviews",
-            count: 188,
-            icon: <FaStar />,
-            color: "orange",
-          },
-        ].map((item, index) => (
-          <Card
-            key={index}
-            sx={{ backgroundColor: item.color, color: "white", flex: 1 }}
+      <Box display="flex" flexDirection={isMobile ? "column" : "row"} gap={2} mt={4}>
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder="Search product..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          sx={{ background: "white", borderRadius: "8px" }}
+        />
+        <FormControl fullWidth>
+          <InputLabel sx={{ color: "white" }}>Category</InputLabel>
+          <Select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            sx={{ background: "white", borderRadius: "8px" }}
           >
-            <CardContent>
-              <Typography>{item.label}</Typography>
-              <Typography variant="h5" fontWeight="bold">
-                {item.count}
-              </Typography>
-            </CardContent>
-          </Card>
-        ))}
+            <MenuItem value="">All</MenuItem>
+            {categories.map((category) => (
+              <MenuItem key={category} value={category}>
+                {category}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </Box>
 
-      {/* Add Product */}
-
-      {/* Product Table */}
-      <TableContainer component={Paper} sx={{ mt: 4 }}>
+      <TableContainer
+        component={Paper}
+        sx={{
+          mt: 4,
+          backdropFilter: "blur(12px)",
+          backgroundColor: "rgba(255, 255, 255, 0.1)",
+          borderRadius: "12px",
+          boxShadow: "0 4px 10px rgba(0, 0, 0, 0.2)",
+          overflowX: "auto",
+        }}
+      >
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Product</TableCell>
-              <TableCell>Brand</TableCell>
-              <TableCell>Category</TableCell>
-              <TableCell>Price</TableCell>
-              <TableCell>Rating</TableCell>
-              <TableCell>Actions</TableCell>
+              {isMobile
+                ? ["Product", "Price", "Actions"].map((head) => (
+                    <TableCell key={head} sx={{ color: "white", fontWeight: "bold" }}>
+                      {head}
+                    </TableCell>
+                  ))
+                : ["Product", "Brand", "Category", "Price", "Rating", "Actions"].map((head) => (
+                    <TableCell key={head} sx={{ color: "white", fontWeight: "bold" }}>
+                      {head}
+                    </TableCell>
+                  ))}
             </TableRow>
           </TableHead>
           <TableBody>
-            {products.map((product, index) => (
+            {filteredProducts.map((product, index) => (
               <TableRow key={index}>
                 <TableCell>
                   <Box display="flex" alignItems="center" gap={2}>
                     {product.name}
                   </Box>
                 </TableCell>
-                <TableCell>{product.brand}</TableCell>
-                <TableCell>{product.category}</TableCell>
+                {!isMobile && <TableCell sx={{ color: "white" }}>{product.brand}</TableCell>}
+                {!isMobile && <TableCell sx={{ color: "white" }}>{product.category}</TableCell>}
                 <TableCell>
-                  <Typography
-                    color="gray"
-                    sx={{ textDecoration: "line-through" }}
-                  >
+                  <Typography color="gray" sx={{ textDecoration: "line-through" }}>
                     Rs {product.price}
                   </Typography>
-                  <Typography color="red">
-                    Rs {product.discountPrice}
-                  </Typography>
+                  <Typography color="red">Rs {product.discountPrice}</Typography>
                 </TableCell>
-                <TableCell>{product.rating} ⭐</TableCell>
+                {!isMobile && <TableCell sx={{ color: "white" }}>{product.rating} ⭐</TableCell>}
                 <TableCell>
                   <IconButton onClick={() => handleDeleteProduct(product._id)}>
-                    <Delete color="error" />
+                    <Delete sx={{ color: "red" }} />
                   </IconButton>
                 </TableCell>
               </TableRow>

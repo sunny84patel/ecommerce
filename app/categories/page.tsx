@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography, Button, Chip } from "@mui/material";
+import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography } from "@mui/material";
 
 interface Product {
   _id: string;
@@ -24,7 +24,7 @@ export default function CategoryList() {
   useEffect(() => {
     let url = "/api/products";
     if (selectedCategory) url += `?category=${selectedCategory}`;
-    if (selectedSubCategory) url += `?subCategory=${selectedSubCategory}`;
+    if (selectedSubCategory) url += `&subCategory=${selectedSubCategory}`;
 
     fetch(url)
       .then((res) => res.json())
@@ -32,32 +32,28 @@ export default function CategoryList() {
   }, [selectedCategory, selectedSubCategory]);
 
   return (
-    <Box p={4}>
-      <Typography variant="h4" fontWeight="bold">
+    <Box p={4} className="glass rounded-xl shadow-lg">
+      <Typography variant="h4" fontWeight="bold" className="text-blue-500">
         {selectedCategory ? `Products in ${selectedCategory}` : "All Products"}
       </Typography>
 
-      <TableContainer component={Paper} sx={{ mt: 4 }}>
+      <TableContainer component={Paper} sx={{ mt: 4, borderRadius: 4, overflow: "hidden", background: "rgba(255, 255, 255, 0.1)", backdropFilter: "blur(12px)", boxShadow: "0 8px 24px rgba(0, 0, 0, 0.2)" }}>
         <Table>
           <TableHead>
-            <TableRow>
-              {/* <TableCell sx={{ backgroundColor: "#1976D2", color: "white" }}>IMAGE</TableCell> */}
-              <TableCell sx={{ backgroundColor: "#1976D2", color: "white" }}>PRODUCT NAME</TableCell>
-              <TableCell sx={{ backgroundColor: "#1976D2", color: "white" }}>CATEGORY</TableCell>
-              <TableCell sx={{ backgroundColor: "#1976D2", color: "white" }}>SUB CATEGORY</TableCell>
-              <TableCell sx={{ backgroundColor: "#1976D2", color: "white" }}>PRICE</TableCell>
+            <TableRow sx={{ background: "rgba(0, 119, 255, 0.6)" }}>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>PRODUCT NAME</TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>CATEGORY</TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>SUB CATEGORY</TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>PRICE</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {products.map((product) => (
-              <TableRow key={product._id}>
-                {/* <TableCell>
-                  <img src={product.image} alt={product.name} width="50" />
-                </TableCell> */}
-                <TableCell>{product.name}</TableCell>
+              <TableRow key={product._id} sx={{ transition: "0.3s", "&:hover": { backgroundColor: "rgba(255, 255, 255, 0.1)" } }}>
+                <TableCell className="font-semibold">{product.name}</TableCell>
                 <TableCell>{product.category}</TableCell>
                 <TableCell>{product.subCategory}</TableCell>
-                <TableCell>Rs {product.price}</TableCell>
+                <TableCell className="text-blue-500 font-bold">Rs {product.price}</TableCell>
               </TableRow>
             ))}
           </TableBody>
